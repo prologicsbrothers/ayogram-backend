@@ -18,7 +18,7 @@ app.use(bodyParser.json({ limit: '20mb' }));
 // ✅ R2 client
 const s3 = new S3Client({
   region: 'auto',
-  endpoint: https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com,
+  endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
   credentials: {
     accessKeyId: process.env.R2_ACCESS_KEY_ID,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY
@@ -72,7 +72,7 @@ app.post('/presign-upload', verifyToken, async (req, res) => {
 
   // ✅ Replace internal R2 hostname → public .r2.dev URL
   uploadUrl = uploadUrl.replace(
-    ${process.env.R2_BUCKET}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com,
+    `${process.env.R2_BUCKET}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
     process.env.R2_PUBLIC_DOMAIN // 👈 Render/Env me set karo: pub-xxxxx.r2.dev
   );
 
@@ -93,7 +93,7 @@ app.get('/presign-get', verifyToken, async (req, res) => {
 
   // ✅ Replace hostname → public URL
   url = url.replace(
-    ${process.env.R2_BUCKET}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com,
+    `${process.env.R2_BUCKET}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
     process.env.R2_PUBLIC_DOMAIN
   );
 
