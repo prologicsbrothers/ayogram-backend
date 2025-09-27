@@ -79,11 +79,11 @@ app.post('/presign-upload', verifyToken, async (req, res) => {
     presignedUrl: uploadUrl
   });
 
-  // ✅ Replace internal R2 hostname → public .r2.dev URL
-  uploadUrl = uploadUrl.replace(
-    `${process.env.R2_BUCKET}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-    process.env.R2_PUBLIC_DOMAIN // 👈 Render/Env me set karo: pub-xxxxx.r2.dev
-  );
+  // // ✅ Replace internal R2 hostname → public .r2.dev URL
+  // uploadUrl = uploadUrl.replace(
+  //   `${process.env.R2_BUCKET}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  //   process.env.R2_PUBLIC_DOMAIN // 👈 Render/Env me set karo: pub-xxxxx.r2.dev
+  // );
 
   res.json({ uploadUrl, key });
 });
