@@ -70,6 +70,15 @@ app.post('/presign-upload', verifyToken, async (req, res) => {
 
   let uploadUrl = await getSignedUrl(s3, cmd, { expiresIn: 3600 }); // 1 hr
 
+  // ✅ Debug log
+  console.log("🔑 Env + Upload Debug:", {
+    R2_BUCKET: process.env.R2_BUCKET,
+    R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
+    R2_PUBLIC_DOMAIN: process.env.R2_PUBLIC_DOMAIN,
+    generatedKey: key,
+    presignedUrl: uploadUrl
+  });
+
   // ✅ Replace internal R2 hostname → public .r2.dev URL
   uploadUrl = uploadUrl.replace(
     `${process.env.R2_BUCKET}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
