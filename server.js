@@ -44,6 +44,12 @@ async function verifyToken(req, res, next) {
     }
 }
 
+// Add ping endpoint for warmup
+app.get('/ping', (req, res) => {
+  res.json({ status: 'ok', time: new Date().toISOString() });
+});
+
+
 // ✅ Presign upload
 app.post('/presign-upload', verifyToken, async (req, res) => {
     const { fileName, contentType, channelKey } = req.body;
@@ -68,6 +74,7 @@ app.get('/presign-get', verifyToken, async (req, res) => {
     const url = await getSignedUrl(s3, cmd, { expiresIn: 900 }); // 15 min
     res.json({ url });
 });
+
 
 // ✅ Start server
 const port = process.env.PORT || 8080;
