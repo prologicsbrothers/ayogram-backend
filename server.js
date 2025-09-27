@@ -68,24 +68,30 @@ app.post('/presign-upload', verifyToken, async (req, res) => {
     ContentType: contentType
   });
 
-  let uploadUrl = await getSignedUrl(s3, cmd, { expiresIn: 3600 }); // 1 hr
+  try {
+    let uploadUrl = await getSignedUrl(s3, cmd, { expiresIn: 3600 }); // 1 hour
 
-  // ✅ Debug log
-  console.log("🔑 Env + Upload Debug:", {
-    R2_BUCKET: process.env.R2_BUCKET,
-    R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
-    R2_PUBLIC_DOMAIN: process.env.R2_PUBLIC_DOMAIN,
-    generatedKey: key,
-    presignedUrl: uploadUrl
-  });
+    // ✅ Replace internal R2 hostname → public .r2.dev URL
+    if (process.env.R2_PUBLIC_DOMAIN) {
+      const internalHost = `${process.env.R2_BUCKET}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
+      uploadUrl = uploadUrl.replace(internalHost, process.env.R2_PUBLIC_DOMAIN.replace(/^https?:\/\//, ''));
+      uploadUrl = `https://${uploadUrl}`; // prepend https://
+    }
 
-  // ✅ Replace internal R2 hostname → public .r2.dev URL
-  uploadUrl = uploadUrl.replace(
-    `${process.env.R2_BUCKET}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-    process.env.R2_PUBLIC_DOMAIN // 👈 Render/Env me set karo: pub-xxxxx.r2.dev
-  );
+    // ✅ Debug log
+    console.log("🔑 Env + Upload Debug:", {
+      R2_BUCKET: process.env.R2_BUCKET,
+      R2_ACCOUNT_ID: process.env.R2_ACCOUNT_ID,
+      R2_PUBLIC_DOMAIN: process.env.R2_PUBLIC_DOMAIN,
+      generatedKey: key,
+      presignedUrl: uploadUrl
+    });
 
-  res.json({ uploadUrl, key });
+    res.json({ uploadUrl, key });
+  } catch (err) {
+    console.error("❌ Presign upload error:", err);
+    res.status(500).json({ error: 'Failed to generate presigned URL' });
+  }
 });
 
 // ✅ Presign download
@@ -98,15 +104,20 @@ app.get('/presign-get', verifyToken, async (req, res) => {
     Key: key
   });
 
-  let url = await getSignedUrl(s3, cmd, { expiresIn: 900 }); // 15 min
+  try {
+    let url = await getSignedUrl(s3, cmd, { expiresIn: 900 }); // 15 min
 
-  // ✅ Replace hostname → public URL
-  url = url.replace(
-    `${process.env.R2_BUCKET}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-    process.env.R2_PUBLIC_DOMAIN
-  );
+    if (process.env.R2_PUBLIC_DOMAIN) {
+      const internalHost = `${process.env.R2_BUCKET}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
+      url = url.replace(internalHost, process.env.R2_PUBLIC_DOMAIN.replace(/^https?:\/\//, ''));
+      url = `https://${url}`;
+    }
 
-  res.json({ url });
+    res.json({ url });
+  } catch (err) {
+    console.error("❌ Presign download error:", err);
+    res.status(500).json({ error: 'Failed to generate presigned download URL' });
+  }
 });
 
 // ✅ Start server
