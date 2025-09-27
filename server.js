@@ -61,7 +61,15 @@ app.post('/presign-upload', verifyToken, async (req, res) => {
         Key: key,
         ContentType: contentType,
     });
-    const uploadUrl = await getSignedUrl(s3, cmd, { expiresIn: 3600 }); // 1 hr
+
+    let uploadUrl = await getSignedUrl(s3, cmd, { expiresIn: 3600 }); // 1 hr
+
+// Convert S3 hostname → Public Dev URL
+    uploadUrl = uploadUrl.replace(
+        `${process.env.R2_BUCKET}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+        "pub-9b2bc6ca8cd74c6ea752d6b52dd93783.r2.dev"   // ✅ tumhara R2.dev domain
+        );
+
     res.json({ uploadUrl, key });
 });
 
@@ -71,7 +79,12 @@ app.get('/presign-get', verifyToken, async (req, res) => {
     if (!key) return res.status(400).json({ error: 'missing key' });
 
     const cmd = new GetObjectCommand({ Bucket: process.env.R2_BUCKET, Key: key });
-    const url = await getSignedUrl(s3, cmd, { expiresIn: 900 }); // 15 min
+let url = await getSignedUrl(s3, cmd, { expiresIn: 900 }); // 15 min
+
+url = url.replace(
+  `${process.env.R2_BUCKET}.${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  "pub-9b2bc6ca8cd74c6ea752d6b52dd93783.r2.dev"
+);
     res.json({ url });
 });
 
